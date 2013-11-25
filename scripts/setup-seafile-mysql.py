@@ -1056,6 +1056,64 @@ DATABASES = {
         except Exception, e:
             Utils.error('Failed to prepare seahub avatars dir: %s' % e)
 
+class SeafEventsConfigurator(AbstractConfigurator):
+    def __init__(self):
+        AbstractConfigurator.__init__(self)
+        self.seafile_dir = os.path.join(env_mgr.top_dir, 'seafile-data')
+        self.seafevents_conf = os.path.join(self.seafile_dir, 'seafevents.conf')
+
+    def ask_questions(self):
+        pass
+
+    def generate(self):
+        template = '''
+[DATABASE]
+type=mysql
+username=%(username)s
+password=%(password)s
+name=%(name)s
+host=%(host)s
+port=%(port)s
+
+[SEAHUB EMAIL]
+enabled = true
+interval = 30m
+
+[OFFICE CONVERTER]
+enabled = true
+workers = 1
+'''
+
+        content = template % dict(host=db_config.mysql_host,
+                                  port=db_config.mysql_port,
+                                  username=db_config.seafile_mysql_user,
+                                  password=db_config.seafile_mysql_password,
+                                  name=db_config.seahub_db_name)
+
+        with open(self.seafevents_conf, 'w') as fp:
+            fp.write(content)
+
+class SeafDavConfigurator(AbstractConfigurator):
+    def __init__(self):
+        AbstractConfigurator.__init__(self)
+        self.seafile_dir = os.path.join(env_mgr.top_dir, 'seafile-data')
+        self.seafdav_conf = os.path.join(self.seafile_dir, 'seafdav.conf')
+
+    def ask_questions(self):
+        pass
+
+    def generate(self):
+        text = '''
+[WEBDAV]
+enabled = false
+port = 8080
+share_name = /seafdav
+'''
+
+        with open(self.seafdav_conf, 'w') as fp:
+            fp.write(text)
+
+
 def report_config():
     print
     print '---------------------------------'
@@ -1125,6 +1183,8 @@ def create_seafile_server_symlink():
 env_mgr = EnvManager()
 ccnet_config = CcnetConfigurator()
 seafile_config = SeafileConfigurator()
+seafevents_config = SeafEventsConfigurator()
+seafdav_config = SeafDavConfigurator()
 seahub_config = SeahubConfigurator()
 # Would be created after AbstractDBConfigurator.ask_use_existing_db()
 db_config = None
@@ -1155,6 +1215,8 @@ def main():
     db_config.generate()
     ccnet_config.generate()
     seafile_config.generate()
+    seafevents_config.generate()
+    seafdav_config.generate()
     seahub_config.generate()
 
     seahub_config.do_syncdb()

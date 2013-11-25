@@ -21,6 +21,7 @@ seaf_controller="${INSTALLPATH}/seafile/bin/seafile-controller"
 
 
 export PATH=${INSTALLPATH}/seafile/bin:$PATH
+export ORIG_LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 export SEAFILE_LD_LIBRARY_PATH=${INSTALLPATH}/seafile/lib/:${INSTALLPATH}/seafile/lib64:${LD_LIBRARY_PATH}
 
 script_name=$0
@@ -90,6 +91,7 @@ function validate_already_running () {
     check_component_running "ccnet-server" "ccnet-server -c ${default_ccnet_conf_dir}"
     check_component_running "seaf-server" "seaf-server -c ${default_ccnet_conf_dir}"
     check_component_running "httpserver" "httpserver -c ${default_ccnet_conf_dir}"
+    check_component_running "seafevents" "seafevents.main"
 }
 
 function start_seafile_server () {
@@ -125,6 +127,7 @@ function stop_seafile_server () {
     pkill -f "ccnet-server -c ${default_ccnet_conf_dir}"
     pkill -f "seaf-server -c ${default_ccnet_conf_dir}"
     pkill -f "httpserver -c ${default_ccnet_conf_dir}"
+    pkill -f "seafevents.main --config-file"
     return 0
 }
 

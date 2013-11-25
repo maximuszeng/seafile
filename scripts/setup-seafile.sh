@@ -323,6 +323,42 @@ function get_seafile_data_dir () {
     echo
 }
 
+function gen_seafevents_conf () {
+    seafevents_conf=${seafile_data_dir}/seafevents.conf
+    if ! $(cat > ${seafevents_conf} <<EOF
+[DATABASE]
+type = sqlite3
+path = seafevents.db
+
+[SEAHUB EMAIL]
+enabled = true
+interval = 30m
+
+[OFFICE CONVERTER]
+enabled = true
+workers = 1
+EOF
+); then
+    echo "failed to generate seafevents.conf";
+    err_and_quit
+fi
+}
+
+function gen_seafdav_conf () {
+    seafdav_conf=${seafile_data_dir}/seafdav.conf
+    if ! $(cat > ${seafdav_conf} <<EOF
+[WEBDAV]
+enabled = false
+port = 8080
+share_name = /seafdav
+EOF
+); then
+    echo "failed to generate seafdav.conf";
+    err_and_quit
+fi
+}
+
+
 
 # -------------------------------------------
 # Main workflow of this script 
@@ -412,6 +448,13 @@ fi
 # -------------------------------------------
 
 echo "${seafile_data_dir}" > "${default_ccnet_conf_dir}/seafile.ini"
+
+# -------------------------------------------
+# Generate seafevents.conf
+# -------------------------------------------
+
+gen_seafevents_conf;
+gen_seafdav_conf;
 
 # -------------------------------------------
 # generate seahub/settings.py
